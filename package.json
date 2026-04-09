@@ -1,0 +1,39 @@
+{
+  "name": "@passwordroost/cli",
+  "version": "1.0.0",
+  "description": "Command-line interface for PasswordRoost API",
+  "main": "index.js",
+  "bin": {
+    "proost": "./bin/proost.js"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "password",
+    "breach",
+    "security",
+    "rainbow-table",
+    "cracking",
+    "cli"
+  ],
+  "author": "After Dark Systems <support@afterdarksys.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/afterdarksystems/passwordroost-cli"
+  },
+  "homepage": "https://developer.passwordroost.com",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "axios": "^1.6.0",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
+    "conf": "^11.0.0",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.5"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
