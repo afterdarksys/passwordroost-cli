@@ -22,7 +22,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/afterdarksystems/passwordroost-cli"
+    "url": "https://github.com/afterdarksys/passwordroost-cli"
   },
   "homepage": "https://developer.passwordroost.com",
   "files": [
@@ -42,6 +42,6 @@
     "jest": "^30.4.2"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   }
 }
