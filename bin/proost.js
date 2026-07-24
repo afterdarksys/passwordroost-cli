@@ -48,6 +48,12 @@ breachCmd
   .option('-j, --json', 'Output as JSON')
   .action(commands.breach.check);
 
+breachCmd
+  .command('email <email>')
+  .description('Check whether an email address appears in known breaches')
+  .option('-j, --json', 'Output as JSON')
+  .action(commands.breach.checkEmail);
+
 // Rainbow table commands
 const rainbowCmd = program
   .command('rainbow')

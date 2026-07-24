@@ -1,13 +1,14 @@
 {
   "name": "@passwordroost/cli",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Command-line interface for PasswordRoost API",
-  "main": "index.js",
+  "main": "commands/index.js",
   "bin": {
     "proost": "./bin/proost.js"
   },
   "scripts": {
-    "test": "jest"
+    "test": "jest --runInBand",
+    "check": "npm test && node bin/proost.js --version && node bin/proost.js breach --help"
   },
   "keywords": [
     "password",
@@ -24,16 +25,23 @@
     "url": "https://github.com/afterdarksystems/passwordroost-cli"
   },
   "homepage": "https://developer.passwordroost.com",
+  "files": [
+    "bin/",
+    "commands/",
+    "lib/",
+    "README.md"
+  ],
   "dependencies": {
     "commander": "^11.0.0",
-    "axios": "^1.6.0",
+    "axios": "^1.18.1",
     "chalk": "^4.1.2",
     "cli-table3": "^0.6.3",
-    "conf": "^11.0.0",
-    "ora": "^5.4.1",
-    "inquirer": "^8.2.5"
+    "ora": "^5.4.1"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   }
 }

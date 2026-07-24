@@ -5,6 +5,14 @@ const ora = require('ora');
 const { config } = require('./config');
 const Table = require('cli-table3');
 
+function jobHeaders(apiKey, jobId) {
+  const token = config.get(`job_tokens.${jobId}`);
+  return {
+    'X-API-Key': apiKey,
+    ...(token ? { 'X-Job-Token': token } : {})
+  };
+}
+
 async function create(password, options) {
   const apiKey = config.get('api_key');
   if (!apiKey) {
@@ -24,9 +32,12 @@ async function create(password, options) {
 
     spinner.stop();
 
-    const job = response.data.job;
+    const job = response.data;
+    if (job.accessToken) {
+      config.set(`job_tokens.${job.jobId}`, job.accessToken);
+    }
     console.log(chalk.green(`\n✓ Monitoring job created!`));
-    console.log(chalk.yellow(`   Job ID: ${job.id}`));
+    console.log(chalk.yellow(`   Job ID: ${job.jobId}`));
     if (options.email) {
       console.log(chalk.yellow(`   Alerts: Enabled for ${options.email}`));
     }
@@ -49,14 +60,14 @@ async function status(jobId) {
   try {
     const response = await axios.get(
       `${config.get('base_url')}/api/jobs/${jobId}`,
-      { headers: { 'X-API-Key': apiKey } }
+      { headers: jobHeaders(apiKey, jobId) }
     );
 
     spinner.stop();
 
-    const job = response.data.job;
+    const job = response.data;
 
-    console.log(chalk.blue(`\nJob: ${job.id}`));
+    console.log(chalk.blue(`\nJob: ${job.jobId}`));
     console.log(`  Breach count: ${chalk.yellow(job.breachCount)}`);
     console.log(`  Last checked: ${new Date(job.lastCheckedAt).toLocaleString()}`);
     console.log(`  Alerts: ${job.alertEnabled ? chalk.green('Enabled') : chalk.dim('Disabled')}`);
@@ -98,7 +109,7 @@ async function list(email) {
 
     jobs.forEach(job => {
       table.push([
-        job.id.substring(0, 12) + '...',
+        job.jobId.substring(0, 12) + '...',
         job.breachCount,
         job.alertEnabled ? '✓' : '✗',
         new Date(job.createdAt).toLocaleDateString()

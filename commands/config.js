@@ -1,17 +1,20 @@
-const Conf = require('conf');
 const chalk = require('chalk');
+const { ConfigStore } = require('../lib/config-store');
 
-const config = new Conf({
-  projectName: 'proost',
+const config = new ConfigStore({
   defaults: {
     api_key: '',
     base_url: 'https://api.passwordroost.com'
   }
 });
 
+function displayValue(key, value) {
+  return /(key|token|secret)/i.test(key) ? '***' : value;
+}
+
 async function set(key, value) {
   config.set(key, value);
-  console.log(chalk.green(`✓ Set ${key} = ${value}`));
+  console.log(chalk.green(`✓ Set ${key} = ${displayValue(key, value)}`));
 }
 
 async function get(key) {
@@ -26,7 +29,7 @@ async function get(key) {
     console.log(chalk.blue('Current configuration:'));
     const all = config.store;
     Object.entries(all).forEach(([k, v]) => {
-      console.log(`  ${k} = ${k.includes('key') ? '***' : v}`);
+      console.log(`  ${k} = ${displayValue(k, v)}`);
     });
   }
 }
@@ -35,7 +38,7 @@ async function list() {
   const all = config.store;
   console.log(chalk.blue('Configuration:'));
   Object.entries(all).forEach(([k, v]) => {
-    console.log(`  ${chalk.yellow(k)}: ${k.includes('key') ? '***' : v}`);
+    console.log(`  ${chalk.yellow(k)}: ${displayValue(k, v)}`);
   });
 }
 

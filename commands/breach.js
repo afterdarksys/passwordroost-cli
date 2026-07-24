@@ -48,4 +48,43 @@ async function check(password, options) {
   }
 }
 
-module.exports = { check };
+async function checkEmail(email, options) {
+  const apiKey = config.get('api_key');
+  if (!apiKey) {
+    console.log(chalk.red('✗ No API key configured. Run: proost config set api_key YOUR_KEY'));
+    process.exitCode = 1;
+    return;
+  }
+
+  const spinner = ora('Checking email exposure...').start();
+  try {
+    const response = await axios.post(
+      `${config.get('base_url')}/v1/email/check`,
+      { email },
+      { headers: { 'X-API-Key': apiKey } }
+    );
+    spinner.stop();
+    const result = response.data;
+
+    if (options.json) {
+      console.log(JSON.stringify(result, null, 2));
+      return;
+    }
+
+    if (!result.found) {
+      console.log(chalk.green('\n✓ Email not found in known breaches'));
+      return;
+    }
+
+    console.log(chalk.red(`\n⚠️  EMAIL FOUND IN ${result.breachCount} KNOWN BREACHES`));
+    for (const breach of result.breaches || []) {
+      console.log(chalk.yellow(`   • ${breach.name}`));
+    }
+  } catch (error) {
+    spinner.stop();
+    console.log(chalk.red(`\n✗ Error: ${error.response?.data?.error || error.message}`));
+    process.exitCode = 1;
+  }
+}
+
+module.exports = { check, checkEmail };

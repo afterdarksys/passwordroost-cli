@@ -29,6 +29,12 @@ proost config list
 ```bash
 # Check a password for breaches
 proost breach check "password123"
+
+# Check an email address for known exposure
+proost breach email you@example.com
+
+# Return the normalized API response
+proost breach email you@example.com --json
 ```
 
 ### Rainbow Table Lookups
@@ -76,6 +82,17 @@ proost monitor status job_abc123
 # List all monitoring jobs
 proost monitor list you@example.com
 ```
+
+Crack and monitoring creation responses contain one-time management tokens.
+The CLI saves those tokens automatically and sends them in `X-Job-Token` for
+later status and cancellation requests. The config file and token store are
+written with owner-only permissions on macOS and Linux.
+
+The self-hosted Pwned Passwords provider, XposedOrNot provider selection, and
+MailAccess service are backend implementation details; they do not require
+provider credentials in the CLI. MailAccess deep investigations will be added
+only after the public PasswordRoast API exposes consent- and ownership-aware
+endpoints for them.
 
 ## Help
 

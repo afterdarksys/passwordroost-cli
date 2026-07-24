@@ -2,8 +2,17 @@ const axios = require('axios');
 const chalk = require('chalk');
 const ora = require('ora');
 const fs = require('fs');
+const path = require('path');
 const { config } = require('./config');
 const Table = require('cli-table3');
+
+function jobHeaders(apiKey, jobId) {
+  const token = config.get(`job_tokens.${jobId}`);
+  return {
+    'X-API-Key': apiKey,
+    ...(token ? { 'X-Job-Token': token } : {})
+  };
+}
 
 async function create(options) {
   const apiKey = config.get('api_key');
@@ -26,8 +35,9 @@ async function create(options) {
     const response = await axios.post(
       `${config.get('base_url')}/api/gpu/crack-jobs`,
       {
-        jobType: options.type,
+        hashType: options.type,
         hashData,
+        hashFileName: path.basename(options.file),
         gpuType: options.gpu,
         rentalHours: parseInt(options.hours),
         wordlist: options.wordlist
@@ -37,17 +47,20 @@ async function create(options) {
 
     spinner.stop();
 
-    const job = response.data.job;
+    const job = response.data;
+    if (job.accessToken) {
+      config.set(`job_tokens.${job.jobId}`, job.accessToken);
+    }
 
     console.log(chalk.green(`\n✓ Cracking job created!`));
-    console.log(chalk.yellow(`   Job ID: ${job.id}`));
+    console.log(chalk.yellow(`   Job ID: ${job.jobId}`));
     console.log(chalk.yellow(`   Status: ${job.status}`));
     console.log(chalk.yellow(`   GPU: ${job.gpuType}`));
     console.log(chalk.yellow(`   Price: $${job.totalPrice}`));
-    console.log(chalk.dim(`\n   Check status: proost crack status ${job.id}`));
+    console.log(chalk.dim(`\n   Check status: proost crack status ${job.jobId}`));
   } catch (error) {
     spinner.stop();
-    console.log(chalk.red(`✗ Error: ${error.response?.data?.message || error.message}`));
+    console.log(chalk.red(`✗ Error: ${error.response?.data?.error || error.response?.data?.message || error.message}`));
     process.exit(1);
   }
 }
@@ -64,19 +77,19 @@ async function status(jobId, options) {
   try {
     const response = await axios.get(
       `${config.get('base_url')}/api/gpu/crack-jobs/${jobId}`,
-      { headers: { 'X-API-Key': apiKey } }
+      { headers: jobHeaders(apiKey, jobId) }
     );
 
     spinner.stop();
 
-    const job = response.data.job;
+    const job = response.data;
 
     if (options.json) {
       console.log(JSON.stringify(job, null, 2));
       return;
     }
 
-    console.log(chalk.blue(`\nJob: ${job.id}`));
+    console.log(chalk.blue(`\nJob: ${job.jobId}`));
     console.log(`  Status: ${chalk.yellow(job.status)}`);
     console.log(`  Progress: ${chalk.green(job.progress + '%')}`);
     if (job.speed) console.log(`  Speed: ${job.speed}`);
@@ -87,7 +100,7 @@ async function status(jobId, options) {
     }
   } catch (error) {
     spinner.stop();
-    console.log(chalk.red(`✗ Error: ${error.response?.data?.message || error.message}`));
+    console.log(chalk.red(`✗ Error: ${error.response?.data?.error || error.response?.data?.message || error.message}`));
     process.exit(1);
   }
 }
@@ -105,14 +118,14 @@ async function cancel(jobId) {
     await axios.post(
       `${config.get('base_url')}/api/gpu/crack-jobs/${jobId}/cancel`,
       {},
-      { headers: { 'X-API-Key': apiKey } }
+      { headers: jobHeaders(apiKey, jobId) }
     );
 
     spinner.stop();
     console.log(chalk.green('✓ Job cancelled'));
   } catch (error) {
     spinner.stop();
-    console.log(chalk.red(`✗ Error: ${error.response?.data?.message || error.message}`));
+    console.log(chalk.red(`✗ Error: ${error.response?.data?.error || error.response?.data?.message || error.message}`));
     process.exit(1);
   }
 }
@@ -153,8 +166,8 @@ async function list(options) {
 
     jobs.forEach(job => {
       table.push([
-        job.id.substring(0, 8) + '...',
-        job.jobType,
+        job.jobId.substring(0, 8) + '...',
+        job.hashType,
         job.status,
         job.progress + '%',
         new Date(job.createdAt).toLocaleDateString()
@@ -164,7 +177,7 @@ async function list(options) {
     console.log(table.toString());
   } catch (error) {
     spinner.stop();
-    console.log(chalk.red(`✗ Error: ${error.response?.data?.message || error.message}`));
+    console.log(chalk.red(`✗ Error: ${error.response?.data?.error || error.response?.data?.message || error.message}`));
     process.exit(1);
   }
 }
